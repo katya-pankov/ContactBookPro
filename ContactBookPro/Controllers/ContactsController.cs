@@ -34,10 +34,46 @@ namespace ContactBookPro.Controllers
 
         // GET: Contacts
         [Authorize]
-        public async Task<IActionResult> Index()
+        public IActionResult Index(int categoryId)
         {
-            var applicationDbContext = _context.Contacts.Include(c => c.AppUser);
-            return View(await applicationDbContext.ToListAsync());
+            var contacts = new List<Contact>();
+            string appUserId = _userManager.GetUserId(User);
+
+
+            //return the userId and its associated contacts and categroies;
+            AppUser appUser = _context.Users
+                                      //this is looking at the Icollection Contacts on the AppUser Model
+                                      .Include(c => c.Contacts)
+                                      //this is looking at the Icollection categories on the contacts model. ThenInclude 
+                                      //references the model in the previous include statement which in this case is 
+                                      //contacts.
+                                      .ThenInclude(c => c.Categories)
+                                      //takes the first match
+                                      .FirstOrDefault(u => u.Id == appUserId)!;
+
+            var categories = appUser.Categories;
+            // if it's 0 return All contacts (the first item from the dropdown)
+            if(categoryId == 0)
+            {
+                contacts = appUser.Contacts.OrderBy(c => c.LastName)
+                                           .ThenBy(c => c.FirstName)
+                                           .ToList();
+            }
+            // if it's anything other than 0
+            else
+            {
+                // tfiter categories by Id, order them and return the list
+                contacts = appUser.Categories.FirstOrDefault(c => c.Id == categoryId)
+                                   .Contacts.OrderBy(c => c.LastName)
+                                   .ThenBy(c => c.FirstName)
+                                   .ToList();
+            }
+
+
+
+            ViewData["CategoryId"] = new SelectList(categories, "Id", "Name", categoryId);
+            // return contacts model to the view
+            return View(contacts);
         }
 
         // GET: Contacts/Details/5
