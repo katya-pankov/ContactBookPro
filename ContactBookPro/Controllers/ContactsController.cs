@@ -10,6 +10,9 @@ using ContactBookPro.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
 using ContactBookPro.Enums;
+using ContactBookPro.Services.Interfaces;
+using ContactBookPro.Services;
+
 
 namespace ContactBookPro.Controllers
 {
@@ -17,11 +20,16 @@ namespace ContactBookPro.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<AppUser> _userManager;
+        private readonly IImageService _imageService;
+        private readonly IAddressBookService _addressBookService;
 
-        public ContactsController(ApplicationDbContext context, UserManager<AppUser> userManager)
+        public ContactsController(ApplicationDbContext context, UserManager<AppUser> userManager,
+                                   IImageService imageService, IAddressBookService addressBookService)
         {
             _context = context;
             _userManager = userManager;
+            _imageService = imageService;
+            _addressBookService = addressBookService;
         }
 
         // GET: Contacts
@@ -54,10 +62,12 @@ namespace ContactBookPro.Controllers
 
         // GET: Contacts/Create
         [Authorize]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            ViewData["AppUserID"] = new SelectList(_context.Users, "Id", "Id");
+            string appUserId = _userManager.GetUserId(User);
+
             ViewData["StatesList"] = new SelectList(Enum.GetValues(typeof(States)).Cast<States>().ToList());
+            ViewData["CategoryList"] = new MultiSelectList(await _addressBookService.GetUserCategoriesAsync(appUserId), "Id", "Name");
             return View();
         }
 
@@ -80,6 +90,12 @@ namespace ContactBookPro.Controllers
                 if (contact.BirthDate != null)
                 {
                     contact.BirthDate = DateTime.SpecifyKind(contact.BirthDate.Value, DateTimeKind.Utc);
+                }
+
+                if (contact.ImageFile != null)
+                {
+                    contact.ImageData = await _imageService.ConvertFileToByteArrayAsync(contact.ImageFile);
+                    contact.ImageType = contact.ImageFile.ContentType;
                 }
 
                 _context.Add(contact);

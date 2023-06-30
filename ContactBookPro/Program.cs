@@ -2,8 +2,9 @@ using ContactBookPro.Data;
 using ContactBookPro.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-
 using Microsoft.AspNetCore.Identity.UI.Services;
+using ContactBookPro.Services;
+using ContactBookPro.Services.Interfaces;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,6 +22,14 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddDefaultIdentity<AppUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
+
+// custom services
+// this will create the instance of our service on every request.
+// Each user gets their own class of ImageSerivce
+builder.Services.AddScoped<IImageService, ImageService>();
+
+
+builder.Services.AddScoped<IAddressBookService, AddressBookService>();
 
 var app = builder.Build();
 
