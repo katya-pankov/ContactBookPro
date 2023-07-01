@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using ContactBookPro.Services;
 using ContactBookPro.Services.Interfaces;
-
+using ContactBookPro.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,6 +32,8 @@ builder.Services.AddScoped<IImageService, ImageService>();
 builder.Services.AddScoped<IAddressBookService, AddressBookService>();
 
 var app = builder.Build();
+var scope = app.Services.CreateScope();
+await DataHelper.ManageDataAsync(scope.ServiceProvider);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
