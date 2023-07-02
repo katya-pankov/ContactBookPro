@@ -41,12 +41,28 @@ namespace ContactBookPro.Services
 
         public Task<ICollection<Category>> GetContactCategoriesAsync(int contactId)
         {
+
             throw new NotImplementedException();
         }
 
-        public Task<ICollection<int>> GetContactCategoryIdsAsync(int contactId)
+        public async Task<ICollection<int>> GetContactCategoryIdsAsync(int contactId)
         {
-            throw new NotImplementedException();
+            try
+            {
+                //take the contact that is comining in. Make sure you include the categories associated with it.
+                // filter that by contact Id
+                var contact = await _context.Contacts.Include(c => c.Categories)
+                                                    .FirstOrDefaultAsync(c => c.Id == contactId);
+
+                // take the category class that comes back, filter that down to one column (id column). Return that as a list
+                List<int> categoryIds = contact.Categories.Select(c => c.Id).ToList();
+                return categoryIds;
+            }
+            catch (Exception)
+            {
+                throw;
+
+            }
         }
 
         public async Task<IEnumerable<Category>> GetUserCategoriesAsync(string userId)
