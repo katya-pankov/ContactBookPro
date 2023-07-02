@@ -33,6 +33,7 @@ builder.Services.AddScoped<IAddressBookService, AddressBookService>();
 
 var app = builder.Build();
 var scope = app.Services.CreateScope();
+//get the databse updated with the latest migration
 await DataHelper.ManageDataAsync(scope.ServiceProvider);
 
 // Configure the HTTP request pipeline.
