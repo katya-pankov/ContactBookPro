@@ -281,7 +281,11 @@ namespace ContactBookPro.Controllers
                 try
                 {
                     // we need to properly format our date time so it's saved to PostgreSQL accepted format
-                    contact.Created = DateTime.SpecifyKind((DateTime)contact.Created, DateTimeKind.Utc);
+                    if (contact.Created != null)
+                    {
+                        contact.Created = DateTime.SpecifyKind(contact.Created.Value, DateTimeKind.Utc);
+                    }
+                    //contact.Created = DateTime.SpecifyKind((DateTime)contact.Created, DateTimeKind.Utc);
 
                     if(contact.BirthDate != null)
                     {

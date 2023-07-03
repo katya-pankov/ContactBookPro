@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.Options;
 using MimeKit;
-//using System.Net.Mail;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 
@@ -13,9 +12,7 @@ namespace ContactBookPro.Services
     public class EmailService : IEmailSender
     {
         private readonly MailSettings _mailSettings;
-        private object usingSecureSocketOptions;
-
-        //go to the config fle and get its settings, put the values in the mailSettings and pass them in here
+        //go to the config fle and get its settings, put the values into the mailSettings and pass them in here
         public EmailService(IOptions<MailSettings> mailSettings)
         {
             _mailSettings = mailSettings.Value;
@@ -36,14 +33,14 @@ namespace ContactBookPro.Services
             }
             //set the subject
             newEmail.Subject = subject;
-            // format the message for us. We are passing in the html that was sent
+            // format the message. We are passing in the html that was sent
             //make an email body from the mimekit
             BodyBuilder emailBody = new();
             emailBody.HtmlBody = htmlMessage;
             // add it to email and set it corretly
             newEmail.Body = emailBody.ToMessageBody();
 
-            //we can log in
+            //log in
             using SmtpClient smtpClient = new();
             try
             {
