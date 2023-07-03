@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using ContactBookPro.Services;
 using ContactBookPro.Services.Interfaces;
 using ContactBookPro.Helpers;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,9 +28,11 @@ builder.Services.AddControllersWithViews();
 // this will create the instance of our service on every request.
 // Each user gets their own class of ImageSerivce
 builder.Services.AddScoped<IImageService, ImageService>();
-
-
 builder.Services.AddScoped<IAddressBookService, AddressBookService>();
+builder.Services.AddScoped<IEmailSender, EmailService>();
+
+builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("MailSettings"));
+
 
 var app = builder.Build();
 var scope = app.Services.CreateScope();

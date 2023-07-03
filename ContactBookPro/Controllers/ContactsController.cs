@@ -12,7 +12,9 @@ using Microsoft.AspNetCore.Authorization;
 using ContactBookPro.Enums;
 using ContactBookPro.Services.Interfaces;
 using ContactBookPro.Services;
-
+using System.ComponentModel.DataAnnotations;
+using ContactBookPro.Models.ViewModels;
+using Microsoft.AspNetCore.Identity.UI.Services;
 
 namespace ContactBookPro.Controllers
 {
@@ -22,14 +24,17 @@ namespace ContactBookPro.Controllers
         private readonly UserManager<AppUser> _userManager;
         private readonly IImageService _imageService;
         private readonly IAddressBookService _addressBookService;
+        private readonly IEmailSender _emailService;
 
         public ContactsController(ApplicationDbContext context, UserManager<AppUser> userManager,
-                                   IImageService imageService, IAddressBookService addressBookService)
+                                   IImageService imageService, IAddressBookService addressBookService,
+                                    IEmailSender emailService)
         {
             _context = context;
             _userManager = userManager;
             _imageService = imageService;
             _addressBookService = addressBookService;
+            _emailService = emailService;
         }
 
         // GET: Contacts
@@ -97,7 +102,7 @@ namespace ContactBookPro.Controllers
             }
             else
             {
-                contacts = appUser.Contacts.Where( c => c.FullName!.ToLower().Contains(searchString.ToLower()) ) 
+                contacts = appUser.Contacts.Where(c => c.FullName!.ToLower().Contains(searchString.ToLower()))
                     .OrderBy(c => c.LastName)
                     .ThenBy(c => c.FirstName)
                     .ToList();
@@ -108,6 +113,58 @@ namespace ContactBookPro.Controllers
             return View(nameof(Index), contacts);
 
         }
+
+        [Authorize]
+        public async Task<IActionResult> EmailContact(int id)
+        {
+            //get our current user from our user Manager
+            string appUserId = _userManager.GetUserId(User);
+            Contact contact = await _context.Contacts.Where(c => c.Id == id && c.AppUserID == appUserId)
+                                                        .FirstOrDefaultAsync();  
+            if(contact == null)
+            {
+                return NotFound();
+            }
+
+            EmailData emailData = new EmailData()
+            {
+                EmailAddress = contact.Email,
+                FirstName = contact.FirstName,
+                LastName = contact.LastName
+
+            };
+
+            EmailContactViewModel model = new EmailContactViewModel()
+            {
+                Contact = contact,
+                EmailData = emailData,
+            }; 
+                                                        
+            return View(model);
+        }
+
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> EmailContact(EmailContactViewModel ecvm)
+        {
+            if(ModelState.IsValid)
+            {
+                try
+                {
+                    await _emailService.SendEmailAsync(ecvm.EmailData.EmailAddress, ecvm.EmailData.Subject, ecvm.EmailData.Body);
+                    return RedirectToAction("Index", "Contacts");
+                }
+                catch
+                {
+                    throw;
+                }
+               
+            }
+            return View(ecvm);
+        }
+
+        
+        
         // GET: Contacts/Details/5
         [Authorize]
         public async Task<IActionResult> Details(int? id)
@@ -212,7 +269,7 @@ namespace ContactBookPro.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,AppUserID,FirstName,LastName,BirthDate,Address1,Address2,City,State,ZipCode,Email,PhoneNumber,Created,ImageData,ImageType")] Contact contact)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,AppUserID,FirstName,LastName,BirthDate,Address1,Address2,City,State,ZipCode,Email,PhoneNumber,Created,ImageFile,ImageData,ImageType")] Contact contact, List<int> CategoryList)
         {
             if (id != contact.Id)
             {
@@ -224,14 +281,36 @@ namespace ContactBookPro.Controllers
                 try
                 {
                     // we need to properly format our date time so it's saved to PostgreSQL accepted format
-                    contact.Created = DateTime.SpecifyKind(contact.Created, DateTimeKind.Utc);
+                    contact.Created = DateTime.SpecifyKind((DateTime)contact.Created, DateTimeKind.Utc);
 
                     if(contact.BirthDate != null)
                     {
                         contact.BirthDate = DateTime.SpecifyKind(contact.BirthDate.Value, DateTimeKind.Utc);
                     }
+
+                    if (contact.ImageFile != null)
+                    {
+                        contact.ImageData = await _imageService.ConvertFileToByteArrayAsync(contact.ImageFile);
+                        contact.ImageType = contact.ImageFile.ContentType;
+                    }
                     _context.Update(contact);
                     await _context.SaveChangesAsync();
+
+                    //save our categories
+                    //remove the current categories
+                    List<Category> oldCategories = (await _addressBookService.GetContactCategoriesAsync(contact.Id)).ToList();
+                    //add the selected categories
+                    foreach (var category in oldCategories)
+                    {
+                        await _addressBookService.RemoveContactFromCategoryASync(category.Id, contact.Id);
+                    }
+
+                    //add the selected categories
+                    foreach(int categoryId in CategoryList)
+                    {
+                        await _addressBookService.AddContactToCategoryAsync(categoryId, contact.Id);
+                    }
+
                 }
                 catch (DbUpdateConcurrencyException)
                 {
