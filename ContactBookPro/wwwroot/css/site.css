@@ -43,8 +43,8 @@ body {
 
 .btn-primary {
     color: white !important;
-    background-color: var(--cf-primaryColor) !important;
-    border-color: var(--cf-secondary-color);
+    background-color: #FF5757 !important;
+    border-color: #FF5757 !important;
 }
 
     .btn-primary:hover {
@@ -93,7 +93,7 @@ main {
 }
 
 .texthighlight {
-    color: var(--cf-primaryColor);
+    color: #FF5757;
 }
 
 .heroTitle {
@@ -173,7 +173,7 @@ main {
 }
 
     .socialicons:hover {
-        color: var(--cf-primaryColor);
+        color: #d7404a;
         opacity: 1;
         cursor: pointer;
     }
