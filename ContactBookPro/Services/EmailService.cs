@@ -12,7 +12,7 @@ namespace ContactBookPro.Services
     public class EmailService : IEmailSender
     {
         private readonly MailSettings _mailSettings;
-        //go to the config fle and get its settings, put the values into the mailSettings and pass them in here
+        //go to the config file and get its settings, put the values into the mailSettings and pass them in here
         public EmailService(IOptions<MailSettings> mailSettings)
         {
             _mailSettings = mailSettings.Value;
@@ -21,7 +21,13 @@ namespace ContactBookPro.Services
         public async Task SendEmailAsync(string email, string subject, string htmlMessage)
         {
             var emailSender = _mailSettings.Email;
-            MimeMessage newEmail = new();
+            if (string.IsNullOrEmpty(emailSender))
+            {
+                throw new ArgumentNullException(nameof(emailSender), "Email sender address is not configured.");
+            }
+
+            MimeMessage newEmail = new MimeMessage();
+            //MimeMessage newEmail = new();
 
             // we have a new email object. We set the sender
             newEmail.Sender = MailboxAddress.Parse(emailSender);
