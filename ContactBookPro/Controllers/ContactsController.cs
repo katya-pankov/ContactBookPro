@@ -344,9 +344,13 @@ namespace ContactBookPro.Controllers
                 return NotFound();
             }
 
+            //get appUser Id
+            string appUserId = _userManager.GetUserId(User);
+
+            //you must be an owner of the account to delete any contacts
             var contact = await _context.Contacts
                 .Include(c => c.AppUser)
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(c => c.Id == id && c.AppUserID == appUserId);
             if (contact == null)
             {
                 return NotFound();
@@ -360,14 +364,14 @@ namespace ContactBookPro.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            if (_context.Contacts == null)
-            {
-                return Problem("Entity set 'ApplicationDbContext.Contacts'  is null.");
-            }
-            var contact = await _context.Contacts.FindAsync(id);
+            //get appUser Id
+            string appUserId = _userManager.GetUserId(User);
+
+            var contact = await _context.Contacts.FirstOrDefaultAsync(c => c.Id == id && c.AppUserID == appUserId);
             if (contact != null)
             {
                 _context.Contacts.Remove(contact);
+                await _context.SaveChangesAsync();
             }
 
             await _context.SaveChangesAsync();
