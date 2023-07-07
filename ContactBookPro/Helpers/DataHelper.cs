@@ -5,6 +5,7 @@ namespace ContactBookPro.Helpers
 {
     public static class DataHelper
     {
+        //inject IService provider 
         public static async Task ManageDataAsync(IServiceProvider svcProvider)
         {
             //get an instance of the db application context

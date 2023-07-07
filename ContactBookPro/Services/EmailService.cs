@@ -20,7 +20,9 @@ namespace ContactBookPro.Services
 
         public async Task SendEmailAsync(string email, string subject, string htmlMessage)
         {
-            var emailSender = _mailSettings.Email;
+            // look in the local, if it's null look in the environment
+            var emailSender = _mailSettings.Email ?? Environment.GetEnvironmentVariable("Email");
+
             if (string.IsNullOrEmpty(emailSender))
             {
                 throw new ArgumentNullException(nameof(emailSender), "Email sender address is not configured.");
@@ -51,9 +53,10 @@ namespace ContactBookPro.Services
             try
             {
                 //try and login to gmail, get the host, password and the port
-                var host = _mailSettings.Host;
-                var port = _mailSettings.Port;
-                var password = _mailSettings.Password;
+                var host = _mailSettings.Host ?? Environment.GetEnvironmentVariable("Host");
+                // If mailSettings port is not equla to 0, look locally, else look in the environment. port comes in as int.
+                var port = _mailSettings.Port !=0 ? _mailSettings.Port : int.Parse(Environment.GetEnvironmentVariable("Port")!);
+                var password = _mailSettings.Password ?? Environment.GetEnvironmentVariable("Password");
                 // try to connect, include security/encryption
                 await smtpClient.ConnectAsync(host, port, SecureSocketOptions.StartTls);
                 //authenticate with our password
