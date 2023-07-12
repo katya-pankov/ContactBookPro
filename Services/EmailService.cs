@@ -53,10 +53,10 @@ namespace ContactBookPro.Services
             try
             {
                 //try and login to gmail, get the host, password and the port
-                var host = _mailSettings.Host ?? Environment.GetEnvironmentVariable("Host");
+                var host = _mailSettings.MailHost ?? Environment.GetEnvironmentVariable("MailHost");
                 // If mailSettings port is not equla to 0, look locally, else look in the environment. port comes in as int.
-                var port = _mailSettings.Port !=0 ? _mailSettings.Port : int.Parse(Environment.GetEnvironmentVariable("Port")!);
-                var password = _mailSettings.Password ?? Environment.GetEnvironmentVariable("Password");
+                var port = _mailSettings.MailPort !=0 ? _mailSettings.MailPort : int.Parse(Environment.GetEnvironmentVariable("MailPort")!);
+                var password = _mailSettings.MailPassword ?? Environment.GetEnvironmentVariable("MailPassword");
                 // try to connect, include security/encryption
                 await smtpClient.ConnectAsync(host, port, SecureSocketOptions.StartTls);
                 //authenticate with our password
