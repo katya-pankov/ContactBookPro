@@ -31,7 +31,7 @@ body {
 /*-- Button styles override Bootstrap Styles --*/
 .btn-outline-primary {
     color: var(--cf-dark-color);
-    border-color: var(--cf-primaryColor) !important;
+    border-color: var(--cf-dark-color) !important;
 }
 
     .btn-outline-primary:hover,
@@ -62,9 +62,35 @@ body {
     width: 7rem;
 }
 
+.btn-login:hover {
+    background-color: #002a4e !important;
+}
+
 nav {
     background-color: var(--cf-primaryColorLight)
 }
+
+
+
+.nav-link {
+    color: #002a4e !important;
+}
+
+.nav-pills .nav-link.active, .nav-pills .show > .nav-link {
+    background-color: #7e97bd8f;
+}
+
+.btn-outline-secondary {
+    color: #6c757d;
+    border-color: var(--cf-dark-color);
+}
+
+    .btn-outline-secondary:hover {
+        background-color: #7e97bd8f !important;
+        border-color: #7e97bd8f !important;
+        color: #002a4e;
+    }
+
 
 h1,
 h2,
@@ -203,6 +229,10 @@ main {
     height: 100%;
     object-fit: cover;
     object-position: top;
+}
+
+#hero-img {
+    max-height: 700px;
 }
 
 
